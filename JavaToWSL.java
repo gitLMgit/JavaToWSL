@@ -14,8 +14,7 @@ public class JavaToWSL {
 	
 	public static void main(String[] args) throws IOException {
 		
-		LinkedList<Boolean> ugnjezdeniIf = new LinkedList<Boolean>();
-		LinkedList<Boolean> ugnjezdeniWhile = new LinkedList<Boolean>();
+		LinkedList<String> ugnjezdeni = new LinkedList<String>(); 
 		
 		List<String> tipovi = new ArrayList<String>();
 		tipovi.add("byte");
@@ -29,9 +28,14 @@ public class JavaToWSL {
 			BufferedReader br = new BufferedReader(new FileReader("src/fajlovi/proba"));
 			String linija;
 			String rezultat = "";
+			
+			/* kada imam 'if' pa 'while' na steku, onda ce, bez ovog flag-a
+			   program da prodje i kroz zatvaranje 'if' i kroz zatvaranje 'while' */
+			boolean zatvorenIfWhile = false;
 
 			while((linija = br.readLine()) != null) {
 				
+				zatvorenIfWhile = false;
 				// skidamo visak razmaka sa pocetka i kraja
 				linija = linija.trim();
 				// splitujemo po razmaku sve
@@ -47,8 +51,8 @@ public class JavaToWSL {
 						// ovde zelim da resim udvajanje
 						// za svaki nivo ugnjezdenosti dodajem po 2 razmaka
 						String razmak = "";
-						if (!ugnjezdeniIf.isEmpty() || !ugnjezdeniWhile.isEmpty()) {
-							char[] razmaci = new char[2*(ugnjezdeniWhile.size() + ugnjezdeniIf.size())];
+						if (!ugnjezdeni.isEmpty()) {
+							char[] razmaci = new char[2*ugnjezdeni.size()];
 							// ovaj metod mi popunjava niz zeljenim elementima, tj. razmacima
 							Arrays.fill(razmaci, ' ');
 							for(int i = 0; i < razmaci.length; i++) {
@@ -77,11 +81,11 @@ public class JavaToWSL {
 						uslovi += split1[i] + " ";
 					}
 					uslovi += split1[split1.length - 2];
-					// ovde zelim da resim udvajanje
+
 					// za svaki nivo ugnjezdenosti dodajem po 2 razmaka
 					String razmak = "";
-					if (!ugnjezdeniIf.isEmpty() || !ugnjezdeniWhile.isEmpty()) {
-						char[] razmaci = new char[2*(ugnjezdeniWhile.size() + ugnjezdeniIf.size())];
+					if (!ugnjezdeni.isEmpty()) {
+						char[] razmaci = new char[2*ugnjezdeni.size()];
 						// ovaj metod mi popunjava niz zeljenim elementima, tj. razmacima
 						Arrays.fill(razmaci, ' ');
 						for(int i = 0; i < razmaci.length; i++) {
@@ -89,17 +93,19 @@ public class JavaToWSL {
 						}
 						rezultat += razmak;
 					}
-					rezultat += "IF " + obradiUslov(uslovi) + " THEN \n";
-					ugnjezdeniIf.addLast(true);
+					rezultat += "IF " + obradiUslov(uslovi) + " THEN\n";
+					ugnjezdeni.addLast("if");
 				}
-				// zatvaranje IF-a treba doraditi!!!
-				if(split[0].compareTo("}") == 0 && !ugnjezdeniIf.isEmpty()) {
+
+				
+				if(split[0].compareTo("}") == 0 && !ugnjezdeni.isEmpty() 
+						&& ugnjezdeni.getLast().compareTo("if") == 0 && !zatvorenIfWhile) {
 					rezultat = String.copyValueOf(rezultat.toCharArray(), 0, rezultat.length()-2);
-					// ovde zelim da resim udvajanje
+		
 					// za svaki nivo ugnjezdenosti dodajem po 2 razmaka
 					String razmak = "";
-					if (!ugnjezdeniIf.isEmpty() || !ugnjezdeniWhile.isEmpty()) {
-						char[] razmaci = new char[2*(ugnjezdeniWhile.size() + ugnjezdeniIf.size()-1)];
+					if (!ugnjezdeni.isEmpty()) {
+						char[] razmaci = new char[2*ugnjezdeni.size()-2];
 						// ovaj metod mi popunjava niz zeljenim elementima, tj. razmacima
 						Arrays.fill(razmaci, ' ');
 						for(int i = 0; i < razmaci.length; i++) {
@@ -107,7 +113,8 @@ public class JavaToWSL {
 						}
 					}
 					rezultat += "\n" + razmak + "FI;\n";
-					ugnjezdeniIf.removeLast();
+					zatvorenIfWhile = true;
+					ugnjezdeni.removeLast();
 				}
 				
 				// ovde obradjujemo WHILE
@@ -121,8 +128,8 @@ public class JavaToWSL {
 					uslovi += split1[split1.length - 2];
 					// ovde zelim da resim udvajanje
 					// za svaki nivo ugnjezdenosti dodajem po 2 razmaka
-					if (!ugnjezdeniIf.isEmpty() || !ugnjezdeniWhile.isEmpty()) {
-						char[] razmaci = new char[2*(ugnjezdeniWhile.size() + ugnjezdeniIf.size())];
+					if (!ugnjezdeni.isEmpty()) {
+						char[] razmaci = new char[2*ugnjezdeni.size()];
 						// ovaj metod mi popunjava niz zeljenim elementima, tj. razmacima
 						Arrays.fill(razmaci, ' ');
 						String razmak = "";
@@ -131,17 +138,19 @@ public class JavaToWSL {
 						}
 						rezultat += razmak;
 					}
-					rezultat += "WHILE " + obradiUslov(uslovi) + " DO \n";
-					ugnjezdeniWhile.addLast(true);
+					rezultat += "WHILE " + obradiUslov(uslovi) + " DO\n";
+					ugnjezdeni.addLast("while");
 				}
-				// zatvaranje WHILE-a treba doraditi!!!
-				if(split[0].compareTo("}") == 0 && !ugnjezdeniWhile.isEmpty()) {
+				
+				
+				if(split[0].compareTo("}") == 0 && !ugnjezdeni.isEmpty() 
+						&& ugnjezdeni.getLast().compareTo("while") == 0 && !zatvorenIfWhile) {
 					rezultat = String.copyValueOf(rezultat.toCharArray(), 0, rezultat.length()-2);
 					// ovde zelim da resim udvajanje
 					// za svaki nivo ugnjezdenosti dodajem po 2 razmaka
 					String razmak = "";
-					if (!ugnjezdeniIf.isEmpty() || !ugnjezdeniWhile.isEmpty()) {
-						char[] razmaci = new char[2*(ugnjezdeniWhile.size() + ugnjezdeniIf.size()-1)];
+					if (!ugnjezdeni.isEmpty()) {
+						char[] razmaci = new char[2*ugnjezdeni.size()-2];
 						// ovaj metod mi popunjava niz zeljenim elementima, tj. razmacima
 						Arrays.fill(razmaci, ' ');
 						for(int i = 0; i < razmaci.length; i++) {
@@ -149,7 +158,8 @@ public class JavaToWSL {
 						}
 					}
 					rezultat += "\n" + razmak + "OD;\n";
-					ugnjezdeniWhile.removeLast();
+					zatvorenIfWhile = true;
+					ugnjezdeni.removeLast();
 				}
 				
 				// ovde radimo prepoznavanje ispisa
@@ -157,7 +167,6 @@ public class JavaToWSL {
 					// split1[1] uzima vrednost ispisa u zagradi
 					// split1 ima 0: 'System.out...', 1: ispis u zagradi, 2: ';'
 					String[] split1 = linija.split("[()]");
-					rezultat += "PRINT(";
 					
 					// ovde razlomimo ispis da vidimo ima li konkatenacije
 					String[] konkatenacija = split1[1].split("\\+");
@@ -173,8 +182,16 @@ public class JavaToWSL {
 						ispis = konkatenacija[0];
 					}
 					
-					rezultat += ispis;
-					rezultat += ");\n";
+					String razmak = "";
+					if (!ugnjezdeni.isEmpty()) {
+						char[] razmaci = new char[2*ugnjezdeni.size()];
+						// ovaj metod mi popunjava niz zeljenim elementima, tj. razmacima
+						Arrays.fill(razmaci, ' ');
+						for(int i = 0; i < razmaci.length; i++) {
+							razmak += razmaci[i];
+						}
+					}
+					rezultat += razmak + "PRINT(" + ispis + ");\n";
 				}
 				
 			}
