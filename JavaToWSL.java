@@ -45,31 +45,71 @@ public class JavaToWSL {
 				// ovde prevodimo klasicne aritmeticke izraze
 				// po pravilu lepog kodiranja, racunamo da su simboli odvojeni razmakom (separator)
 				// za sada, samo inicijalizacija i proste binarne operacije
-				if(tipovi.contains(split[0].trim())) {
+				// drugi uslov je aritmeticka operacija nad promenljivom koja je vec deklarisana
+				// spli.length != 2 preskace slucajeve kada imamo deklaraciju promenljive, tipa int x;
+				if((tipovi.contains(split[0].trim()) && split.length != 2) 
+						|| (split.length >= 3 && split[1].compareTo("=") == 0)) {
+					String razmak = "";
+					if (!ugnjezdeni.isEmpty()) {
+						char[] razmaci = new char[2*ugnjezdeni.size()];
+						// ovaj metod mi popunjava niz zeljenim elementima, tj. razmacima
+						Arrays.fill(razmaci, ' ');
+						for(int i = 0; i < razmaci.length; i++) {
+							razmak += razmaci[i];
+						}
+						rezultat += razmak;
+					}
 					// u ovom slucaju imamo bar inicijalizaciju, a ne prostu deklaraciju
-					if(split.length >= 4) {
+					int j;
+					if(split.length >= 4 && tipovi.contains(split[0].trim())) {
 						// ovde zelim da resim udvajanje
 						// za svaki nivo ugnjezdenosti dodajem po 2 razmaka
-						String razmak = "";
-						if (!ugnjezdeni.isEmpty()) {
-							char[] razmaci = new char[2*ugnjezdeni.size()];
-							// ovaj metod mi popunjava niz zeljenim elementima, tj. razmacima
-							Arrays.fill(razmaci, ' ');
-							for(int i = 0; i < razmaci.length; i++) {
-								razmak += razmaci[i];
-							}
-							rezultat += razmak;
-						}
-						for(int i = 1; i < split.length; i++) {
-							String element = split[i];
-							if(split[i].compareTo("%") == 0)
-								element = " MOD ";
-							if(split[i].compareTo("=") == 0)
-								element = " := ";
-							rezultat += element; 
-						}
-						rezultat += "\n";
+						j = 1;
+					} else {
+						j = 0; 
 					}
+					for(int i = j; i < split.length; i++) {
+						String element = split[i];
+						if(split[i].compareTo("%") == 0)
+							element = " MOD ";
+						if(split[i].compareTo("=") == 0)
+							element = " := ";
+						rezultat += element; 
+					}
+					rezultat += "\n";
+				}
+				
+				// operatori za inkrementaciju i dekrementaciju
+				if(split.length == 1 && split[0].length() == 4) {
+					String razmak = "";
+					if (!ugnjezdeni.isEmpty()) {
+						char[] razmaci = new char[2*ugnjezdeni.size()];
+						// ovaj metod mi popunjava niz zeljenim elementima, tj. razmacima
+						Arrays.fill(razmaci, ' ');
+						for(int i = 0; i < razmaci.length; i++) {
+							razmak += razmaci[i];
+						}
+						rezultat += razmak;
+					}
+					String incDec = "";
+					
+					// prefiksni inkrement
+					if(split[0].charAt(0) == '+' && split[0].charAt(1) == '+') {
+						incDec += split[0].charAt(2) + " := " + split[0].charAt(2) + " + 1\n ";
+					} else if (split[0].charAt(1) == '+' && split[0].charAt(2) == '+') {
+					// postfiksni inkrement
+						incDec += split[0].charAt(0) + " := " + split[0].charAt(0) + " + 1\n ";	
+					}
+					
+					// prefiksni dekrement
+					if(split[0].charAt(0) == '-' && split[0].charAt(1) == '-') {
+						incDec += split[0].charAt(2) + " := " + split[0].charAt(2) + " - 1\n ";
+					} else if (split[0].charAt(1) == '-' && split[0].charAt(2) == '-') {
+					// postfiksni dekrement
+						incDec += split[0].charAt(0) + " := " + split[0].charAt(0) + " - 1\n ";	
+					}
+
+					rezultat += razmak + incDec;
 				}
 				
 				// ovde obradjujemo IF
@@ -96,9 +136,54 @@ public class JavaToWSL {
 					rezultat += "IF " + obradiUslov(uslovi) + " THEN\n";
 					ugnjezdeni.addLast("if");
 				}
-
 				
-				if(split[0].compareTo("}") == 0 && !ugnjezdeni.isEmpty() 
+				// ELSE IF deo
+				if(split.length > 4 && split[1].compareTo("else") == 0 &&
+						split[2].compareTo("if") == 0) {
+					String[] split1 = linija.split(" ");
+					String uslovi = "";
+					// split1[1] = else, split1[2] = if, split1[....] = uslovi, split1[split1.length-1] = {
+					for(int i = 3; i < split1.length - 2; i++) {
+						uslovi += split1[i] + " ";
+					}
+					uslovi += split1[split1.length - 2];
+					
+					rezultat = String.copyValueOf(rezultat.toCharArray(), 0, rezultat.length()-2);
+					rezultat += "\n";
+					// za svaki nivo ugnjezdenosti dodajem po 2 razmaka
+					String razmak = "";
+					if (!ugnjezdeni.isEmpty()) {
+						char[] razmaci = new char[2*ugnjezdeni.size()-2];
+						// ovaj metod mi popunjava niz zeljenim elementima, tj. razmacima
+						Arrays.fill(razmaci, ' ');
+						for(int i = 0; i < razmaci.length; i++) {
+							razmak += razmaci[i];
+						}
+						rezultat += razmak;
+					}
+					rezultat += "ELSE IF " + obradiUslov(uslovi) + " THEN\n";
+				}
+				
+				// ELSE deo
+				if(split.length == 3 && split[1].compareTo("else") == 0) {
+					rezultat = String.copyValueOf(rezultat.toCharArray(), 0, rezultat.length()-2);
+					rezultat += "\n";
+					// za svaki nivo ugnjezdenosti dodajem po 2 razmaka
+					String razmak = "";
+					if (!ugnjezdeni.isEmpty()) {
+						char[] razmaci = new char[2*ugnjezdeni.size()-2];
+						// ovaj metod mi popunjava niz zeljenim elementima, tj. razmacima
+						Arrays.fill(razmaci, ' ');
+						for(int i = 0; i < razmaci.length; i++) {
+							razmak += razmaci[i];
+						}
+						rezultat += razmak;
+					}
+					rezultat += "ELSE\n";
+				}
+				
+				// zatvaramo IF
+				if(split.length == 1 && split[0].compareTo("}") == 0 && !ugnjezdeni.isEmpty() 
 						&& ugnjezdeni.getLast().compareTo("if") == 0 && !zatvorenIfWhile) {
 					rezultat = String.copyValueOf(rezultat.toCharArray(), 0, rezultat.length()-2);
 		
@@ -143,7 +228,7 @@ public class JavaToWSL {
 				}
 				
 				
-				if(split[0].compareTo("}") == 0 && !ugnjezdeni.isEmpty() 
+				if(split.length == 1 && split[0].compareTo("}") == 0 && !ugnjezdeni.isEmpty() 
 						&& ugnjezdeni.getLast().compareTo("while") == 0 && !zatvorenIfWhile) {
 					rezultat = String.copyValueOf(rezultat.toCharArray(), 0, rezultat.length()-2);
 					// ovde zelim da resim udvajanje
