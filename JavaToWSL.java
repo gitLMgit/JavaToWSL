@@ -154,7 +154,7 @@ public class JavaToWSL {
 					ugnjezdeni.addLast("if");
 				}
 				
-				// ELSE IF deo
+				// ELSIF deo
 				if(split.length > 4 && split[1].compareTo("else") == 0 &&
 						split[2].compareTo("if") == 0) {
 					String[] split1 = linija.split(" ");
@@ -178,7 +178,7 @@ public class JavaToWSL {
 						}
 						rezultat += razmak;
 					}
-					rezultat += "ELSE IF " + obradiUslov(uslovi) + " THEN\n";
+					rezultat += "ELSIF " + obradiUslov(uslovi) + " THEN\n";
 				}
 				
 				// ELSE deo
