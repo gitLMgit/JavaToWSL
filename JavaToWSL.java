@@ -2,21 +2,34 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Stack;
 
 public class JavaToWSL {
 	
+	// String u kojem cuvamo prevedeni kod
+	private String rezultat = "";
 	
-	public static void main(String[] args) throws IOException {
+	// koristimo stek za rad sa ugnjezdenim "if" i "while" strukturama
+	private LinkedList<String> ugnjezdeni = new LinkedList<String>(); 
+	
+	// lista sa brojevnim tipovima
+	private List<String> tipovi = new ArrayList<String>();
+	
+	// lista sa relacionim operatorima
+	private List<String> relacioni = new ArrayList<String>();
+
+	// lista sa logickim operatorima
+	private List<String> logicki = new ArrayList<String>();
+	
+	
+	// glavni metod u kojem se vrsi prevod
+	public void translate() throws IOException {
 		
-		LinkedList<String> ugnjezdeni = new LinkedList<String>(); 
-		
-		List<String> tipovi = new ArrayList<String>();
+		// dodajemo tipove
+		tipovi.add("String");
 		tipovi.add("byte");
 		tipovi.add("short");
 		tipovi.add("int");
@@ -25,9 +38,9 @@ public class JavaToWSL {
 		tipovi.add("double");
 		
 		try {
+			
 			BufferedReader br = new BufferedReader(new FileReader("src/fajlovi/proba"));
 			String linija;
-			String rezultat = "";
 			
 			/* kada imam 'if' pa 'while' na steku, onda ce, bez ovog flag-a
 			   program da prodje i kroz zatvaranje 'if' i kroz zatvaranje 'while' */
@@ -36,19 +49,20 @@ public class JavaToWSL {
 			while((linija = br.readLine()) != null) {
 				
 				zatvorenIfWhile = false;
+				
 				// skidamo visak razmaka sa pocetka i kraja
 				linija = linija.trim();
 				// splitujemo po razmaku sve
 				String[] split = linija.split(" ");
 				
-				
-				// ovde prevodimo klasicne aritmeticke izraze
-				// po pravilu lepog kodiranja, racunamo da su simboli odvojeni razmakom (separator)
-				// za sada, samo inicijalizacija i proste binarne operacije
+				// ovde prevodimo klasicne izraze (inicijalizacija, aritmetika)
+				// racunamo da su simboli odvojeni razmakom (separator)
 				// drugi uslov je aritmeticka operacija nad promenljivom koja je vec deklarisana
-				// spli.length != 2 preskace slucajeve kada imamo deklaraciju promenljive, tipa int x;
+				// split.length != 2 preskace slucajeve kada imamo deklaraciju promenljive, tipa int x;
 				if((tipovi.contains(split[0].trim()) && split.length != 2) 
 						|| (split.length >= 3 && split[1].compareTo("=") == 0)) {
+					// popravlja uvlacenje koda
+					// za svaki nivo ugnjezdenosti dodajem po 2 razmaka
 					String razmak = "";
 					if (!ugnjezdeni.isEmpty()) {
 						char[] razmaci = new char[2*ugnjezdeni.size()];
@@ -71,10 +85,13 @@ public class JavaToWSL {
 					for(int i = j; i < split.length; i++) {
 						String element = split[i];
 						if(split[i].compareTo("%") == 0)
-							element = " MOD ";
+							element = "MOD";
 						if(split[i].compareTo("=") == 0)
-							element = " := ";
-						rezultat += element; 
+							element = ":=";
+						if(i != split.length - 1) 
+							rezultat += element + " ";
+						else 
+							rezultat += element;
 					}
 					rezultat += "\n";
 				}
@@ -256,7 +273,9 @@ public class JavaToWSL {
 					// ovde razlomimo ispis da vidimo ima li konkatenacije
 					String[] konkatenacija = split1[1].split("\\+");
 					String ispis = "";
+					
 					// ovaj uslov proverava da li je ispis iz jednog dela ili je bilo konkatenacije
+					// NAPOMENA - ova konkatenacija radi samo ukoliko imamo 2 stringa!
 					if(konkatenacija.length > 1) {
 						for(int i = 0; i < konkatenacija.length-1; i++) {
 							ispis += konkatenacija[i] + "++";
@@ -287,20 +306,20 @@ public class JavaToWSL {
 		} catch (FileNotFoundException e) {
 			System.out.println("Greska prilikom citanja iz fajla");
 		}
+		
 	}
-	
+
+
 	// za pocetak prosti uslovi sa binarnim, relacionim operatorima
-	private static String obradiUslov(String string) {
-		//lista sa relacionim operatorima
-		List<String> relacioni = new ArrayList<String>();
+	private String obradiUslov(String string) {
+		// dodajemo logicke i relacione operatore u listu
 		relacioni.add("<");
 		relacioni.add("<=");
 		relacioni.add(">=");
 		relacioni.add(">");
 		relacioni.add("==");
 		relacioni.add("!=");
-
-		List<String> logicki = new ArrayList<String>();
+		
 		logicki.add("&&");
 		logicki.add("&");
 		logicki.add("||");
@@ -334,6 +353,10 @@ public class JavaToWSL {
 		}
 		return rezultat;
 	}
-
 	
+	public static void main(String[] args) throws IOException {
+		// Poziv glavnog metoda za prevodjenje programa
+		JavaToWSL javaWsl = new JavaToWSL();
+		javaWsl.translate();
+	}
 }
