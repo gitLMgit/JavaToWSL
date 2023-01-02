@@ -97,7 +97,9 @@ public class JavaToWSL {
 				}
 				
 				// operatori za inkrementaciju i dekrementaciju
-				if(split.length == 1 && split[0].length() == 4) {
+				if(split.length == 1 && split[0].length() >= 4 &&
+						((split[0].charAt(0) == '+' || split[0].charAt(split[0].length()-2) == '+')
+						|| (split[0].charAt(0) == '-' || split[0].charAt(split[0].length()-2) == '-'))) {
 					String razmak = "";
 					if (!ugnjezdeni.isEmpty()) {
 						char[] razmaci = new char[2*ugnjezdeni.size()];
@@ -112,21 +114,21 @@ public class JavaToWSL {
 					
 					// prefiksni inkrement
 					if(split[0].charAt(0) == '+' && split[0].charAt(1) == '+') {
-						incDec += split[0].charAt(2) + " := " + split[0].charAt(2) + " + 1\n ";
+						incDec += split[0].charAt(2) + " := " + split[0].charAt(2) + " + 1;\n";
 					} else if (split[0].charAt(1) == '+' && split[0].charAt(2) == '+') {
 					// postfiksni inkrement
-						incDec += split[0].charAt(0) + " := " + split[0].charAt(0) + " + 1\n ";	
+						incDec += split[0].charAt(0) + " := " + split[0].charAt(0) + " + 1;\n";	
 					}
 					
 					// prefiksni dekrement
 					if(split[0].charAt(0) == '-' && split[0].charAt(1) == '-') {
-						incDec += split[0].charAt(2) + " := " + split[0].charAt(2) + " - 1\n ";
+						incDec += split[0].charAt(2) + " := " + split[0].charAt(2) + " - 1;\n";
 					} else if (split[0].charAt(1) == '-' && split[0].charAt(2) == '-') {
 					// postfiksni dekrement
-						incDec += split[0].charAt(0) + " := " + split[0].charAt(0) + " - 1\n ";	
+						incDec += split[0].charAt(0) + " := " + split[0].charAt(0) + " - 1;\n";	
 					}
 
-					rezultat += razmak + incDec;
+					rezultat += incDec;
 				}
 				
 				// ovde obradjujemo IF
