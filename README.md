@@ -13,3 +13,4 @@ Stvari odradjene za sada:
 9. Uradjeni operatori za inkrementaciju i dekrementaciju
 10. Dodati su neki testovi (ukupno 3 fajla)
 11. Izvucen je metod za uvlacenje koda, sada nema ponavljanja ovog segmenta
+12. Ispis rezultujuceg koda sada se radi u zaseban fajl
