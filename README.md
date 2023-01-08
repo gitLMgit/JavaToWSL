@@ -11,3 +11,5 @@ Stvari odradjene za sada:
 7. Ugnjezdene varijante prethodne dve strukture
 8. Ispis, prebacivanje S.o.p. u PRINT
 9. Uradjeni operatori za inkrementaciju i dekrementaciju
+10. Dodati su neki testovi (ukupno 3 fajla)
+11. Izvucen je metod za uvlacenje koda, sada nema ponavljanja ovog segmenta
