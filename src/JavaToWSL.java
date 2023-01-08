@@ -1,11 +1,14 @@
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Scanner;
 
 public class JavaToWSL {
 	
@@ -39,7 +42,12 @@ public class JavaToWSL {
 		
 		try {
 			
-			BufferedReader br = new BufferedReader(new FileReader("src/fajlovi/proba"));
+			// unosimo fajl koji zelimo prevesti (unosimo putanju)
+			Scanner io = new Scanner(System.in);
+			System.out.println("Unesite fajl za prevodjenje:");
+			String fajl = io.nextLine();
+			BufferedReader br = new BufferedReader(new FileReader(fajl));
+			
 			String linija;
 			
 			/* kada imam 'if' pa 'while' na steku, onda ce, bez ovog flag-a
@@ -63,16 +71,8 @@ public class JavaToWSL {
 						|| (split.length >= 3 && split[1].compareTo("=") == 0)) {
 					// popravlja uvlacenje koda
 					// za svaki nivo ugnjezdenosti dodajem po 2 razmaka
-					String razmak = "";
-					if (!ugnjezdeni.isEmpty()) {
-						char[] razmaci = new char[2*ugnjezdeni.size()];
-						// ovaj metod mi popunjava niz zeljenim elementima, tj. razmacima
-						Arrays.fill(razmaci, ' ');
-						for(int i = 0; i < razmaci.length; i++) {
-							razmak += razmaci[i];
-						}
-						rezultat += razmak;
-					}
+					String razmak = uvuciKod(0);
+					rezultat += razmak;
 					// u ovom slucaju imamo bar inicijalizaciju, a ne prostu deklaraciju
 					int j;
 					if(split.length >= 4 && tipovi.contains(split[0].trim())) {
@@ -100,16 +100,9 @@ public class JavaToWSL {
 				if(split.length == 1 && split[0].length() >= 4 &&
 						((split[0].charAt(0) == '+' || split[0].charAt(split[0].length()-2) == '+')
 						|| (split[0].charAt(0) == '-' || split[0].charAt(split[0].length()-2) == '-'))) {
-					String razmak = "";
-					if (!ugnjezdeni.isEmpty()) {
-						char[] razmaci = new char[2*ugnjezdeni.size()];
-						// ovaj metod mi popunjava niz zeljenim elementima, tj. razmacima
-						Arrays.fill(razmaci, ' ');
-						for(int i = 0; i < razmaci.length; i++) {
-							razmak += razmaci[i];
-						}
-						rezultat += razmak;
-					}
+					
+					String razmak = uvuciKod(0);
+					rezultat += razmak;
 					String incDec = "";
 					
 					// prefiksni inkrement
@@ -142,16 +135,8 @@ public class JavaToWSL {
 					uslovi += split1[split1.length - 2];
 
 					// za svaki nivo ugnjezdenosti dodajem po 2 razmaka
-					String razmak = "";
-					if (!ugnjezdeni.isEmpty()) {
-						char[] razmaci = new char[2*ugnjezdeni.size()];
-						// ovaj metod mi popunjava niz zeljenim elementima, tj. razmacima
-						Arrays.fill(razmaci, ' ');
-						for(int i = 0; i < razmaci.length; i++) {
-							razmak += razmaci[i];
-						}
-						rezultat += razmak;
-					}
+					String razmak = uvuciKod(0);
+					rezultat += razmak;
 					rezultat += "IF " + obradiUslov(uslovi) + " THEN\n";
 					ugnjezdeni.addLast("if");
 				}
@@ -170,16 +155,8 @@ public class JavaToWSL {
 					rezultat = String.copyValueOf(rezultat.toCharArray(), 0, rezultat.length()-2);
 					rezultat += "\n";
 					// za svaki nivo ugnjezdenosti dodajem po 2 razmaka
-					String razmak = "";
-					if (!ugnjezdeni.isEmpty()) {
-						char[] razmaci = new char[2*ugnjezdeni.size()-2];
-						// ovaj metod mi popunjava niz zeljenim elementima, tj. razmacima
-						Arrays.fill(razmaci, ' ');
-						for(int i = 0; i < razmaci.length; i++) {
-							razmak += razmaci[i];
-						}
-						rezultat += razmak;
-					}
+					String razmak = uvuciKod(2);
+					rezultat += razmak;
 					rezultat += "ELSIF " + obradiUslov(uslovi) + " THEN\n";
 				}
 				
@@ -188,16 +165,8 @@ public class JavaToWSL {
 					rezultat = String.copyValueOf(rezultat.toCharArray(), 0, rezultat.length()-2);
 					rezultat += "\n";
 					// za svaki nivo ugnjezdenosti dodajem po 2 razmaka
-					String razmak = "";
-					if (!ugnjezdeni.isEmpty()) {
-						char[] razmaci = new char[2*ugnjezdeni.size()-2];
-						// ovaj metod mi popunjava niz zeljenim elementima, tj. razmacima
-						Arrays.fill(razmaci, ' ');
-						for(int i = 0; i < razmaci.length; i++) {
-							razmak += razmaci[i];
-						}
-						rezultat += razmak;
-					}
+					String razmak = uvuciKod(2);
+					rezultat += razmak;
 					rezultat += "ELSE\n";
 				}
 				
@@ -207,15 +176,7 @@ public class JavaToWSL {
 					rezultat = String.copyValueOf(rezultat.toCharArray(), 0, rezultat.length()-2);
 		
 					// za svaki nivo ugnjezdenosti dodajem po 2 razmaka
-					String razmak = "";
-					if (!ugnjezdeni.isEmpty()) {
-						char[] razmaci = new char[2*ugnjezdeni.size()-2];
-						// ovaj metod mi popunjava niz zeljenim elementima, tj. razmacima
-						Arrays.fill(razmaci, ' ');
-						for(int i = 0; i < razmaci.length; i++) {
-							razmak += razmaci[i];
-						}
-					}
+					String razmak = uvuciKod(2);
 					rezultat += "\n" + razmak + "FI;\n";
 					zatvorenIfWhile = true;
 					ugnjezdeni.removeLast();
@@ -232,35 +193,19 @@ public class JavaToWSL {
 					uslovi += split1[split1.length - 2];
 					// ovde zelim da resim udvajanje
 					// za svaki nivo ugnjezdenosti dodajem po 2 razmaka
-					if (!ugnjezdeni.isEmpty()) {
-						char[] razmaci = new char[2*ugnjezdeni.size()];
-						// ovaj metod mi popunjava niz zeljenim elementima, tj. razmacima
-						Arrays.fill(razmaci, ' ');
-						String razmak = "";
-						for(int i = 0; i < razmaci.length; i++) {
-							razmak += razmaci[i];
-						}
-						rezultat += razmak;
-					}
+					String razmak = uvuciKod(0);
+					rezultat += razmak;
 					rezultat += "WHILE " + obradiUslov(uslovi) + " DO\n";
 					ugnjezdeni.addLast("while");
 				}
 				
-				
+				// ovde zatvaramo While
 				if(split.length == 1 && split[0].compareTo("}") == 0 && !ugnjezdeni.isEmpty() 
 						&& ugnjezdeni.getLast().compareTo("while") == 0 && !zatvorenIfWhile) {
 					rezultat = String.copyValueOf(rezultat.toCharArray(), 0, rezultat.length()-2);
 					// ovde zelim da resim udvajanje
 					// za svaki nivo ugnjezdenosti dodajem po 2 razmaka
-					String razmak = "";
-					if (!ugnjezdeni.isEmpty()) {
-						char[] razmaci = new char[2*ugnjezdeni.size()-2];
-						// ovaj metod mi popunjava niz zeljenim elementima, tj. razmacima
-						Arrays.fill(razmaci, ' ');
-						for(int i = 0; i < razmaci.length; i++) {
-							razmak += razmaci[i];
-						}
-					}
+					String razmak = uvuciKod(2);
 					rezultat += "\n" + razmak + "OD;\n";
 					zatvorenIfWhile = true;
 					ugnjezdeni.removeLast();
@@ -288,15 +233,7 @@ public class JavaToWSL {
 						ispis = konkatenacija[0];
 					}
 					
-					String razmak = "";
-					if (!ugnjezdeni.isEmpty()) {
-						char[] razmaci = new char[2*ugnjezdeni.size()];
-						// ovaj metod mi popunjava niz zeljenim elementima, tj. razmacima
-						Arrays.fill(razmaci, ' ');
-						for(int i = 0; i < razmaci.length; i++) {
-							razmak += razmaci[i];
-						}
-					}
+					String razmak = uvuciKod(0);
 					rezultat += razmak + "PRINT(" + ispis + ");\n";
 				}
 				
@@ -305,10 +242,30 @@ public class JavaToWSL {
 			String rezultat1 = String.copyValueOf(rezultat.toCharArray(), 0, rezultat.length()-2);
 			// poslednja linija programa mora da terminira '\n' novom linijom
 			System.out.println(rezultat1 + "\n");
+			// ispis rezultata u fajl
+		    FileWriter file = new FileWriter(fajl + "-wslVersion");
+		    BufferedWriter output = new BufferedWriter(file);
+		    output.write(rezultat1);
+		    output.close();
+		    
 		} catch (FileNotFoundException e) {
 			System.out.println("Greska prilikom citanja iz fajla");
 		}
 		
+	}
+
+
+	private String uvuciKod(int j) {
+		String razmak = "";
+		if (!ugnjezdeni.isEmpty()) {
+			char[] razmaci = new char[2*ugnjezdeni.size() - j];
+			// ovaj metod mi popunjava niz zeljenim elementima, tj. razmacima
+			Arrays.fill(razmaci, ' ');
+			for(int i = 0; i < razmaci.length; i++) {
+				razmak += razmaci[i];
+			}
+		}
+		return razmak;
 	}
 
 
