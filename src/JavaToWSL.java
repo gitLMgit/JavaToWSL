@@ -27,6 +27,9 @@ public class JavaToWSL {
 	// lista sa logickim operatorima
 	private List<String> logicki = new ArrayList<String>();
 	
+	// brojac stvari koje nisu podrzane u trenutnoj verziji
+	private int unsupportedCnt = 0;
+	
 	
 	// glavni metod u kojem se vrsi prevod
 	public void translate() throws IOException {
@@ -47,7 +50,7 @@ public class JavaToWSL {
 			System.out.println("Unesite fajl za prevodjenje:");
 			String fajl = io.nextLine();
 			BufferedReader br = new BufferedReader(new FileReader(fajl));
-			
+			io.close();
 			String linija;
 			
 			/* kada imam 'if' pa 'while' na steku, onda ce, bez ovog flag-a
@@ -97,7 +100,7 @@ public class JavaToWSL {
 				}
 				
 				// operatori za inkrementaciju i dekrementaciju
-				if(split.length == 1 && split[0].length() >= 4 &&
+				else if(split.length == 1 && split[0].length() >= 4 &&
 						((split[0].charAt(0) == '+' || split[0].charAt(split[0].length()-2) == '+')
 						|| (split[0].charAt(0) == '-' || split[0].charAt(split[0].length()-2) == '-'))) {
 					
@@ -125,7 +128,7 @@ public class JavaToWSL {
 				}
 				
 				// ovde obradjujemo IF
-				if(split[0].compareTo("if") == 0) {
+				else if(split[0].compareTo("if") == 0) {
 					String[] split1 = linija.split(" ");
 					String uslovi = "";
 					// split1[0] = if, split1[....] = uslovi, split1[split1.length-1] = {
@@ -142,7 +145,7 @@ public class JavaToWSL {
 				}
 				
 				// ELSIF deo
-				if(split.length > 4 && split[1].compareTo("else") == 0 &&
+				else if(split.length > 4 && split[1].compareTo("else") == 0 &&
 						split[2].compareTo("if") == 0) {
 					String[] split1 = linija.split(" ");
 					String uslovi = "";
@@ -161,7 +164,7 @@ public class JavaToWSL {
 				}
 				
 				// ELSE deo
-				if(split.length == 3 && split[1].compareTo("else") == 0) {
+				else if(split.length == 3 && split[1].compareTo("else") == 0) {
 					rezultat = String.copyValueOf(rezultat.toCharArray(), 0, rezultat.length()-2);
 					rezultat += "\n";
 					// za svaki nivo ugnjezdenosti dodajem po 2 razmaka
@@ -171,7 +174,7 @@ public class JavaToWSL {
 				}
 				
 				// zatvaramo IF
-				if(split.length == 1 && split[0].compareTo("}") == 0 && !ugnjezdeni.isEmpty() 
+				else if(split.length == 1 && split[0].compareTo("}") == 0 && !ugnjezdeni.isEmpty() 
 						&& ugnjezdeni.getLast().compareTo("if") == 0 && !zatvorenIfWhile) {
 					rezultat = String.copyValueOf(rezultat.toCharArray(), 0, rezultat.length()-2);
 		
@@ -183,7 +186,7 @@ public class JavaToWSL {
 				}
 				
 				// ovde obradjujemo WHILE
-				if(split[0].compareTo("while") == 0) {
+				else if(split[0].compareTo("while") == 0) {
 					String[] split1 = linija.split(" ");
 					String uslovi = "";
 					// split1[0] = while, split1[....] = uslovi, split1[split1.length-1] = {
@@ -200,7 +203,7 @@ public class JavaToWSL {
 				}
 				
 				// ovde zatvaramo While
-				if(split.length == 1 && split[0].compareTo("}") == 0 && !ugnjezdeni.isEmpty() 
+				else if(split.length == 1 && split[0].compareTo("}") == 0 && !ugnjezdeni.isEmpty() 
 						&& ugnjezdeni.getLast().compareTo("while") == 0 && !zatvorenIfWhile) {
 					rezultat = String.copyValueOf(rezultat.toCharArray(), 0, rezultat.length()-2);
 					// ovde zelim da resim udvajanje
@@ -212,7 +215,7 @@ public class JavaToWSL {
 				}
 				
 				// ovde radimo prepoznavanje ispisa
-				if(split[0].length() >= 18 && String.valueOf(split[0].toCharArray(), 0, 18).compareTo("System.out.println") == 0) {
+				else if(split[0].length() >= 18 && String.valueOf(split[0].toCharArray(), 0, 18).compareTo("System.out.println") == 0) {
 					// split1[1] uzima vrednost ispisa u zagradi
 					// split1 ima 0: 'System.out...', 1: ispis u zagradi, 2: ';'
 					String[] split1 = linija.split("[()]");
@@ -237,8 +240,17 @@ public class JavaToWSL {
 					rezultat += razmak + "PRINT(" + ispis + ");\n";
 				}
 				
+				else {
+					unsupportedCnt++;
+					rezultat += "COMMENT: \"Nije podrzano u trenutnoj verziji\"\n";
+				}
+				
 			}
-
+			
+			if(unsupportedCnt > 0) {
+		    	System.out.println("Pronadjeno je " + unsupportedCnt + " nepodrzanih komandi!");
+		    }
+			
 			String rezultat1 = String.copyValueOf(rezultat.toCharArray(), 0, rezultat.length()-2);
 			// poslednja linija programa mora da terminira '\n' novom linijom
 			System.out.println(rezultat1 + "\n");
@@ -247,11 +259,11 @@ public class JavaToWSL {
 		    BufferedWriter output = new BufferedWriter(file);
 		    output.write(rezultat1);
 		    output.close();
+		    br.close();
 		    
 		} catch (FileNotFoundException e) {
 			System.out.println("Greska prilikom citanja iz fajla");
-		}
-		
+		} 
 	}
 
 
