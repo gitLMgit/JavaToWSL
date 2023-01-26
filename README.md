@@ -1,5 +1,12 @@
 # JavaToWSL
 
+Novo:
+1. Izvucen kod za uvlacenje koda u poseban metod
+2. U kodu se broje komande nepodrzane verzijom; ovo se ispisuje na System.err
+3. Sve nepodrzane komande zakomentarisane se javljaju u prevedenom kodu
+4. Prevodi se samo ono sto je u okviru "main" metoda
+5. Prepoznaje se klasa u kojoj se nalazi "main"; ovo je takodje naznaceno u komentaru
+
 Stvari odradjene za sada:
 
 1. Inicijalizacija promenljivih
