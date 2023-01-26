@@ -264,7 +264,7 @@ public class JavaToWSL {
 					inMain = false;
 				}
 				
-				else {
+				else if (!linija.equals("}")){
 					unsupportedCnt++;
 					rezultat += "COMMENT: \"Not supported in current version: " + linija + "\"\n";
 				}
