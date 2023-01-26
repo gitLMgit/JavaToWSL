@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -29,6 +30,9 @@ public class JavaToWSL {
 	
 	// brojac stvari koje nisu podrzane u trenutnoj verziji
 	private int unsupportedCnt = 0;
+	
+	// boolean koji nam govori jesmo li u main-u
+	private boolean inMain = false;
 	
 	
 	// glavni metod u kojem se vrsi prevod
@@ -66,11 +70,25 @@ public class JavaToWSL {
 				// splitujemo po razmaku sve
 				String[] split = linija.split(" ");
 				
+				// prepoznavanje klase koju naznacavamo u komentaru prevedenog koda
+				if(linija.indexOf("class") != -1) {
+					String className = linija.substring(linija.lastIndexOf("class") + 6);
+					if(className.indexOf("{") != -1) className = String.copyValueOf(className.toCharArray(), 0, className.length() - 1);
+					rezultat += "COMMENT: \": Java Class: " + className + "\"\n";
+				} 
+				
+				else if(linija.indexOf("main") != -1) {
+					inMain = true;
+				}
+				
+				else if(tipovi.contains(split[0].trim()) && split.length == 2 && inMain) {
+					// preskacemo jer je u pitanju obicna deklaracija; nema dodele vrednosti
+				}
+				
 				// ovde prevodimo klasicne izraze (inicijalizacija, aritmetika)
 				// racunamo da su simboli odvojeni razmakom (separator)
 				// drugi uslov je aritmeticka operacija nad promenljivom koja je vec deklarisana
-				// split.length != 2 preskace slucajeve kada imamo deklaraciju promenljive, tipa int x;
-				if((tipovi.contains(split[0].trim()) && split.length != 2) 
+				else if((tipovi.contains(split[0].trim()) && split.length > 2 && inMain) 
 						|| (split.length >= 3 && split[1].compareTo("=") == 0)) {
 					// popravlja uvlacenje koda
 					// za svaki nivo ugnjezdenosti dodajem po 2 razmaka
@@ -93,7 +111,7 @@ public class JavaToWSL {
 							element = ":=";
 						if(i != split.length - 1) 
 							rezultat += element + " ";
-						else 
+						else
 							rezultat += element;
 					}
 					rezultat += "\n";
@@ -102,7 +120,8 @@ public class JavaToWSL {
 				// operatori za inkrementaciju i dekrementaciju
 				else if(split.length == 1 && split[0].length() >= 4 &&
 						((split[0].charAt(0) == '+' || split[0].charAt(split[0].length()-2) == '+')
-						|| (split[0].charAt(0) == '-' || split[0].charAt(split[0].length()-2) == '-'))) {
+						|| (split[0].charAt(0) == '-' || split[0].charAt(split[0].length()-2) == '-'))
+						&& inMain) {
 					
 					String razmak = uvuciKod(0);
 					rezultat += razmak;
@@ -128,7 +147,7 @@ public class JavaToWSL {
 				}
 				
 				// ovde obradjujemo IF
-				else if(split[0].compareTo("if") == 0) {
+				else if(split[0].compareTo("if") == 0 && inMain) {
 					String[] split1 = linija.split(" ");
 					String uslovi = "";
 					// split1[0] = if, split1[....] = uslovi, split1[split1.length-1] = {
@@ -146,7 +165,7 @@ public class JavaToWSL {
 				
 				// ELSIF deo
 				else if(split.length > 4 && split[1].compareTo("else") == 0 &&
-						split[2].compareTo("if") == 0) {
+						split[2].compareTo("if") == 0 && inMain) {
 					String[] split1 = linija.split(" ");
 					String uslovi = "";
 					// split1[1] = else, split1[2] = if, split1[....] = uslovi, split1[split1.length-1] = {
@@ -164,7 +183,7 @@ public class JavaToWSL {
 				}
 				
 				// ELSE deo
-				else if(split.length == 3 && split[1].compareTo("else") == 0) {
+				else if(split.length == 3 && split[1].compareTo("else") == 0 && inMain) {
 					rezultat = String.copyValueOf(rezultat.toCharArray(), 0, rezultat.length()-2);
 					rezultat += "\n";
 					// za svaki nivo ugnjezdenosti dodajem po 2 razmaka
@@ -175,7 +194,7 @@ public class JavaToWSL {
 				
 				// zatvaramo IF
 				else if(split.length == 1 && split[0].compareTo("}") == 0 && !ugnjezdeni.isEmpty() 
-						&& ugnjezdeni.getLast().compareTo("if") == 0 && !zatvorenIfWhile) {
+						&& ugnjezdeni.getLast().compareTo("if") == 0 && !zatvorenIfWhile && inMain) {
 					rezultat = String.copyValueOf(rezultat.toCharArray(), 0, rezultat.length()-2);
 		
 					// za svaki nivo ugnjezdenosti dodajem po 2 razmaka
@@ -186,7 +205,7 @@ public class JavaToWSL {
 				}
 				
 				// ovde obradjujemo WHILE
-				else if(split[0].compareTo("while") == 0) {
+				else if(split[0].compareTo("while") == 0 && inMain) {
 					String[] split1 = linija.split(" ");
 					String uslovi = "";
 					// split1[0] = while, split1[....] = uslovi, split1[split1.length-1] = {
@@ -204,7 +223,7 @@ public class JavaToWSL {
 				
 				// ovde zatvaramo While
 				else if(split.length == 1 && split[0].compareTo("}") == 0 && !ugnjezdeni.isEmpty() 
-						&& ugnjezdeni.getLast().compareTo("while") == 0 && !zatvorenIfWhile) {
+						&& ugnjezdeni.getLast().compareTo("while") == 0 && !zatvorenIfWhile && inMain) {
 					rezultat = String.copyValueOf(rezultat.toCharArray(), 0, rezultat.length()-2);
 					// ovde zelim da resim udvajanje
 					// za svaki nivo ugnjezdenosti dodajem po 2 razmaka
@@ -215,7 +234,8 @@ public class JavaToWSL {
 				}
 				
 				// ovde radimo prepoznavanje ispisa
-				else if(split[0].length() >= 18 && String.valueOf(split[0].toCharArray(), 0, 18).compareTo("System.out.println") == 0) {
+				else if(inMain && split[0].length() >= 18 
+						&& String.valueOf(split[0].toCharArray(), 0, 18).compareTo("System.out.println") == 0) {
 					// split1[1] uzima vrednost ispisa u zagradi
 					// split1 ima 0: 'System.out...', 1: ispis u zagradi, 2: ';'
 					String[] split1 = linija.split("[()]");
@@ -240,15 +260,19 @@ public class JavaToWSL {
 					rezultat += razmak + "PRINT(" + ispis + ");\n";
 				}
 				
+				else if (inMain && linija.equals("}")) {
+					inMain = false;
+				}
+				
 				else {
 					unsupportedCnt++;
-					rezultat += "COMMENT: \"Nije podrzano u trenutnoj verziji\"\n";
+					rezultat += "COMMENT: \"Not supported in current version: " + linija + "\"\n";
 				}
 				
 			}
 			
 			if(unsupportedCnt > 0) {
-		    	System.out.println("Pronadjeno je " + unsupportedCnt + " nepodrzanih komandi!");
+		    	System.err.println("Unsupported commands found: " + unsupportedCnt);
 		    }
 			
 			String rezultat1 = String.copyValueOf(rezultat.toCharArray(), 0, rezultat.length()-2);
