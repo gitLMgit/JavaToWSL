@@ -1,5 +1,6 @@
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -36,7 +37,7 @@ public class JavaToWSL {
 	
 	
 	// glavni metod u kojem se vrsi prevod
-	public void translate() throws IOException {
+	public void translate(File fajl) throws IOException {
 		
 		// dodajemo tipove
 		tipovi.add("String");
@@ -49,12 +50,7 @@ public class JavaToWSL {
 		
 		try {
 			
-			// unosimo fajl koji zelimo prevesti (unosimo putanju)
-			Scanner io = new Scanner(System.in);
-			System.out.println("Unesite fajl za prevodjenje:");
-			String fajl = io.nextLine();
 			BufferedReader br = new BufferedReader(new FileReader(fajl));
-			io.close();
 			String linija;
 			
 			/* kada imam 'if' pa 'while' na steku, onda ce, bez ovog flag-a
@@ -74,7 +70,7 @@ public class JavaToWSL {
 				if(linija.indexOf("class") != -1) {
 					String className = linija.substring(linija.lastIndexOf("class") + 6);
 					if(className.indexOf("{") != -1) className = String.copyValueOf(className.toCharArray(), 0, className.length() - 1);
-					rezultat += "COMMENT: \": Java Class: " + className + "\"\n";
+					rezultat += "COMMENT: \" Java Class: " + className + "\";\n";
 				} 
 				
 				else if(linija.indexOf("main") != -1) {
@@ -266,7 +262,7 @@ public class JavaToWSL {
 				
 				else if (!linija.equals("}")){
 					unsupportedCnt++;
-					rezultat += "COMMENT: \"Not supported in current version: " + linija + "\"\n";
+					rezultat += "COMMENT: \"Not supported in current version: " + obradiLinijuZaKomentar(linija) + "\";\n";
 				}
 				
 			}
@@ -279,7 +275,7 @@ public class JavaToWSL {
 			// poslednja linija programa mora da terminira '\n' novom linijom
 			System.out.println(rezultat1 + "\n");
 			// ispis rezultata u fajl
-		    FileWriter file = new FileWriter(fajl + "-wslVersion");
+		    FileWriter file = new FileWriter(fajl + ".wsl");
 		    BufferedWriter output = new BufferedWriter(file);
 		    output.write(rezultat1);
 		    output.close();
@@ -288,6 +284,12 @@ public class JavaToWSL {
 		} catch (FileNotFoundException e) {
 			System.out.println("Greska prilikom citanja iz fajla");
 		} 
+	}
+
+
+	private String obradiLinijuZaKomentar(String linija) {
+		String novaLinija = linija.replaceAll("\"", "++Quote++");
+		return novaLinija;
 	}
 
 
@@ -350,8 +352,14 @@ public class JavaToWSL {
 	}
 	
 	public static void main(String[] args) throws IOException {
-		// Poziv glavnog metoda za prevodjenje programa
-		JavaToWSL javaWsl = new JavaToWSL();
-		javaWsl.translate();
+		File fajl = null;
+		if (0 < args.length) {
+		   fajl = new File(args[0]);
+		   // Poziv glavnog metoda za prevodjenje programa
+		   JavaToWSL javaWsl = new JavaToWSL();
+		   javaWsl.translate(fajl);
+		} else {
+		   System.err.println("Invalid arguments count:" + args.length);
+		}
 	}
 }
