@@ -1,5 +1,6 @@
 class Proba {
 	private int h =  5;
+	// public void mainMetoda(){};
 	public static void main(String[] main) {
 	int c = 5 + 10;
 	int z;
