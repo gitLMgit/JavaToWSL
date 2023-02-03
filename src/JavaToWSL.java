@@ -73,7 +73,8 @@ public class JavaToWSL {
 					rezultat += "COMMENT: \" Java Class: " + className + "\";\n";
 				} 
 				
-				else if(linija.indexOf("main") != -1) {
+				else if(linija.indexOf("main") != -1 && nijeMainKomentar(linija)
+						&& nijeNekiDrugiMain(linija)) {
 					inMain = true;
 				}
 				
@@ -284,6 +285,21 @@ public class JavaToWSL {
 		} catch (FileNotFoundException e) {
 			System.out.println("Greska prilikom citanja iz fajla");
 		} 
+	}
+	
+	private boolean nijeNekiDrugiMain(String linija) {
+		
+	}
+
+	private boolean nijeMainKomentar(String linija) {
+		// provera da li je 'main' deo komentara
+		// ako je deo komentara - vracamo 'false'; inace 'true'
+		linija = linija.trim();
+		if((linija.charAt(0) == '/' && linija.charAt(1) == '/')
+				|| linija.charAt(0) == '*'
+				|| (linija.charAt(0) == '/' && linija.charAt(1) == '*'))
+			return false;
+		return true;
 	}
 
 
