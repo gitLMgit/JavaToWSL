@@ -1,11 +1,15 @@
-int x = 10;
-int y = 5;
-int z = 9;
-if ((x >= y) && ((z == 9) || (z == -9))) {
-	System.out.println("Kompleksni uslov 1 je zadovoljen");
-	if (x - y != 1) {
-		System.out.println("Uslov 1.1 je zadovoljen");
-	} else {
-		System.out.println("Uslov 1.1 nije zadovoljen");
+class KompleksniUslovi {
+	public static void main(String[] args) {
+		int x = 10;
+		int y = 5;
+		int z = 9;
+		if ((x >= y) && ((z == 9) || (z == -9))) {
+			System.out.println("Kompleksni uslov 1 je zadovoljen");
+			if (x - y != 1) {
+				System.out.println("Uslov 1.1 je zadovoljen");
+			} else {
+				System.out.println("Uslov 1.1 nije zadovoljen");
+			}
+		}
 	}
 }
