@@ -5,7 +5,7 @@ class Proba {
 	int z;
 	int x = 55;
 	int y = 10;
-	while(c > 0) {
+	while (c > 0) {
 		if (x == 5) {
 			z = 10;
 		} else if (x == 55) {
