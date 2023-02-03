@@ -1,12 +1,16 @@
-int c = 1;
-int d;
-int rez;
-while (c <= 10) {
-	d = 1;
-	while (d <= 10) {
-		rez = c * d;
-		System.out.println(rez);
-		d++; 
+class UgnjezdeniWhile {
+	public static void main(String[] args) {
+		int c = 1;
+		int d;
+		int rez;
+		while (c <= 10) {
+			d = 1;
+			while (d <= 10) {
+				rez = c * d;
+				System.out.println(rez);
+				d++; 
+			}
+		c++;
+		}
 	}
-	c++;
 }
