@@ -1,7 +1,7 @@
 class Proba {
 	private int h =  5;
 	// public void mainMetoda(){};
-	public static void main(String[] main) {
+	public static void main(String[] args) {
 	int c = 5 + 10;
 	int z;
 	int x = 55;
