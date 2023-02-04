@@ -1,11 +1,12 @@
 class Proba {
 	private int h =  5;
 	// public void mainMetoda(){};
+	public void main(int x) {}
 	public static void main(String[] args) {
 	int c = 5 + 10;
 	int z = 0;
 	int x = 55;
-	int y = 10;
+	int y ;
 	while (c > 0) {
 		if (x == 5) {
 			z = 10;
