@@ -287,10 +287,22 @@ public class JavaToWSL {
 		} 
 	}
 	
+	// proveravamo da je ime metoda 'main' i da su argumenti String[] args
 	private boolean nijeNekiDrugiMain(String linija) {
-		
+		int indexOfMain = linija.indexOf("main");
+		if(linija.charAt(indexOfMain - 1) == ' ' &&
+				(linija.charAt(indexOfMain + 4) == ' ' || linija.charAt(indexOfMain + 4) == '(')) {
+			int indexPrveZagrade = linija.indexOf('(');
+			int indexDrugeZagrade = linija.indexOf(')');
+			String parametri = linija.substring(indexPrveZagrade + 1, indexDrugeZagrade).trim();
+			parametri = parametri.replaceAll("\\s", "");
+			if(parametri.compareTo("String[]args") == 0)
+				return true;
+			return false;
+		}
+		return false;
 	}
-
+	
 	private boolean nijeMainKomentar(String linija) {
 		// provera da li je 'main' deo komentara
 		// ako je deo komentara - vracamo 'false'; inace 'true'
@@ -301,7 +313,6 @@ public class JavaToWSL {
 			return false;
 		return true;
 	}
-
 
 	private String obradiLinijuZaKomentar(String linija) {
 		String novaLinija = linija.replaceAll("\"", "++Quote++");
